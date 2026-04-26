@@ -30,7 +30,7 @@
                 <a href="{{ url('/') }}"><img src="{{ asset('assets/img/icons/logo-2.png') }}" alt="Logo Petisco"></a>
                 <a href="{{ url('/') }}"><h1>petisco</h1></a>
             </section>
-            <a href="{{ url('/login') }}" alt="login"><img src="{{ asset('assets/img/icons/login.png') }}"></a>
+            <a href="{{ url('/admin/login') }}" alt="login"><img src="{{ asset('assets/img/icons/login.png') }}"></a>
         </section>
         <nav>
             <ul>
