@@ -18,5 +18,6 @@ Route::prefix('admin')->group(function () {
     // Rota dos Talentos (Funcionarios)
     Route::get('/talentos', [DashboardController::class, 'talentos']);
 
-
+    // Rota dos Tutores
+    Route::get('/tutores', [DashboardController::class, 'tutores']);
 });
