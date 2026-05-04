@@ -23,4 +23,8 @@ class DashboardController extends Controller
     public function planos() {
         return view('admin.planos.index');
     }
+
+    public function servicos() {
+        return view('admin.servicos.index');
+    }
 }

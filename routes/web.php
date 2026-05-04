@@ -23,4 +23,7 @@ Route::prefix('admin')->group(function () {
 
     // Rota dos Planos de Saúde
     Route::get('/planos', [DashboardController::class, 'planos']);
+
+    // Rota dos Serviços
+    Route::get('/servicos', [DashboardController::class, 'servicos']);
 });
