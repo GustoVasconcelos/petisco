@@ -25,7 +25,7 @@
                 <span class="text-secondary small fw-bold text-uppercase d-none d-sm-inline">Comercial</span>
             </li>
             <li class="nav-item w-100">
-                <a href="#" class="nav-link text-white px-3">
+                <a href="{{ url('/admin/planos') }}" class="nav-link text-white px-3">
                     <i class="bi bi-shield-check me-2"></i> 
                     <span class="d-none d-sm-inline">Planos de Saúde</span>
                 </a>

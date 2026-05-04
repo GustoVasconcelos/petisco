@@ -20,4 +20,7 @@ Route::prefix('admin')->group(function () {
 
     // Rota dos Tutores
     Route::get('/tutores', [DashboardController::class, 'tutores']);
+
+    // Rota dos Planos de Saúde
+    Route::get('/planos', [DashboardController::class, 'planos']);
 });
