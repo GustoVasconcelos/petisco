@@ -107,6 +107,7 @@
                                             <option value="4">Banho e Tosa</option>
                                             <option value="5">Exame de Sangue</option>
                                             <option value="6">Produtos do PetShop (Geral)</option>
+                                            <option value="7">Vacina contra a gripe canina</option>
                                         </select>
                                     </div>
                                     <div class="col-md-4">
