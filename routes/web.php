@@ -29,4 +29,6 @@ Route::prefix('admin')->group(function () {
 
     // Rota dos Serviços
     Route::get('/servicos', [DashboardController::class, 'servicos']);
+    // Rota do Histórico
+    Route::get('/historico', [DashboardController::class, 'historico']);
 });

@@ -31,4 +31,7 @@ class DashboardController extends Controller
     public function servicos() {
         return view('admin.servicos.index');
     }
+    public function historico() {
+        return view('admin.historico.index');
+    }
 }
