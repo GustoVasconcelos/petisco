@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SiteController;
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\TalentoController;
 
 // Rotas do Site Público
 Route::get('/', [SiteController::class, 'index']);
@@ -18,8 +19,11 @@ Route::prefix('admin')->group(function () {
     // Rota da CRUD dos Animais
     Route::get('/animais', [DashboardController::class, 'animais']);
 
-    // Rota dos Talentos (Funcionarios)
-    Route::get('/talentos', [DashboardController::class, 'talentos']);
+     // CRUD Talentos
+     Route::get('/talentos', [TalentoController::class, 'index']);
+     Route::post('/talentos/store', [TalentoController::class, 'store']);
+     Route::put('/talentos/update/{id}', [TalentoController::class, 'update']);
+     Route::delete('/talentos/delete/{id}', [TalentoController::class, 'destroy']);
 
     // Rota dos Tutores
     Route::resource('tutores', \App\Http\Controllers\Admin\TutorController::class);
