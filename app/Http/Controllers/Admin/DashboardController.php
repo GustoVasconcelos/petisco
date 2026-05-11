@@ -12,6 +12,10 @@ class DashboardController extends Controller
         return view('admin.dashboard');
     }
 
+    public function animais() {
+        return view('admin.animais.index');
+    }
+
     public function talentos() {
         return view('admin.talentos.index');
     }

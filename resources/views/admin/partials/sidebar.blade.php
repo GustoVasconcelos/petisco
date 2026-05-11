@@ -35,7 +35,7 @@
                 <span class="text-secondary small fw-bold text-uppercase d-none d-sm-inline">Cadastros</span>
             </li>
             <li class="nav-item w-100"><a href="{{ url('/admin/tutores') }}" class="nav-link text-white px-3"><i class="bi bi-people me-2"></i> <span class="d-none d-sm-inline">Tutores</span></a></li>
-            <li class="nav-item w-100"><a href="#" class="nav-link text-white px-3"><i class="bi bi-heart-fill me-2 text-danger"></i> <span class="d-none d-sm-inline">Animais</span></a></li>
+            <li class="nav-item w-100"><a href="{{ url('/admin/animais') }}" class="nav-link text-white px-3"><i class="bi bi-heart-fill me-2 text-danger"></i> <span class="d-none d-sm-inline">Animais</span></a></li>
             <li class="nav-item w-100"><a href="#" class="nav-link text-white px-3"><i class="bi bi-journal-medical me-2"></i> <span class="d-none d-sm-inline">Histórico</span></a></li>
             <li class="nav-item w-100"><a href="{{ url('/admin/talentos') }}" class="nav-link text-white px-3"><i class="bi bi-star me-2"></i> <span class="d-none d-sm-inline">Talentos</span></a></li>
             <li class="nav-item w-100"><a href="{{ url('/admin/servicos') }}" class="nav-link text-white px-3"><i class="bi bi-scissors me-2"></i> <span class="d-none d-sm-inline">Serviços</span></a>

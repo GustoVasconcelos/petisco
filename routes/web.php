@@ -15,6 +15,9 @@ Route::prefix('admin')->group(function () {
     // Rota do painel
     Route::get('/dashboard', [DashboardController::class, 'index']);
 
+    // Rota da CRUD dos Animais
+    Route::get('/animais', [DashboardController::class, 'animais']);
+
     // Rota dos Talentos (Funcionarios)
     Route::get('/talentos', [DashboardController::class, 'talentos']);
 
