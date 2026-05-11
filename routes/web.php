@@ -22,7 +22,7 @@ Route::prefix('admin')->group(function () {
     Route::get('/talentos', [DashboardController::class, 'talentos']);
 
     // Rota dos Tutores
-    Route::get('/tutores', [DashboardController::class, 'tutores']);
+    Route::resource('tutores', \App\Http\Controllers\Admin\TutorController::class);
 
     // Rota dos Planos de Saúde
     Route::get('/planos', [DashboardController::class, 'planos']);
