@@ -13,6 +13,10 @@ return new class extends Migration
     {
         Schema::create('planos', function (Blueprint $table) {
             $table->id();
+            $table->string('nome');
+            $table->decimal('valor', 8, 2);
+            $table->text('descricao')->nullable();
+            $table->boolean('ativo')->default(true); // Controla o status Ativo/Inativo da tabela
             $table->timestamps();
         });
     }
