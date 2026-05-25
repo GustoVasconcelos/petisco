@@ -30,26 +30,41 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td class="ps-4 fw-bold">Petisco Premium <span class="badge bg-warning text-dark ms-2">Mais Vendido</span></td>
-                                    <td class="text-success fw-bold">R$ 120,00</td>
-                                    <td>45</td>
-                                    <td><span class="badge bg-success bg-opacity-25 text-success">Ativo</span></td>
-                                    <td class="text-end pe-4">
-                                        <button class="btn btn-sm btn-outline-secondary me-1" title="Editar"><i class="bi bi-pencil"></i></button>
-                                        <button class="btn btn-sm btn-outline-danger" title="Inativar"><i class="bi bi-power"></i></button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="ps-4 fw-bold">Petisco Básico</td>
-                                    <td class="text-success fw-bold">R$ 59,90</td>
-                                    <td>12</td>
-                                    <td><span class="badge bg-success bg-opacity-25 text-success">Ativo</span></td>
-                                    <td class="text-end pe-4">
-                                        <button class="btn btn-sm btn-outline-secondary me-1" title="Editar"><i class="bi bi-pencil"></i></button>
-                                        <button class="btn btn-sm btn-outline-danger" title="Inativar"><i class="bi bi-power"></i></button>
-                                    </td>
-                                </tr>
+                                {{-- 1. LOOP DINÂMICO PARA LISTAR OS PLANOS --}}
+                                @forelse($planos as $plano)
+                                    <tr>
+                                        <td class="ps-4 fw-bold">
+                                            {{ $plano->nome }}
+                                        </td>
+                                        <td class="text-success fw-bold">
+                                            R$ {{ number_format($plano->valor, 2, ',', '.') }}
+                                        </td>
+                                        <td>
+                                            {{-- Estático por enquanto, até criar a relação com Pets futuramente --}}
+                                            0
+                                        </td>
+                                        <td>
+                                            @if($plano->ativo)
+                                                <span class="badge bg-success bg-opacity-25 text-success">Ativo</span>
+                                            @else
+                                                <span class="badge bg-danger bg-opacity-25 text-danger">Inativo</span>
+                                            @endif
+                                        </td>
+                                        <td class="text-end pe-4">
+                                            <button class="btn btn-sm btn-outline-secondary me-1" title="Editar"><i class="bi bi-pencil"></i></button>
+                                            <button class="btn btn-sm btn-outline-danger" title="{{ $plano->ativo ? 'Inativar' : 'Ativar' }}">
+                                                <i class="bi bi-power"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    {{-- Mensagem exibida caso a tabela do banco esteja vazia --}}
+                                    <tr>
+                                        <td colspan="5" class="text-center py-4 text-muted">
+                                            Nenhum plano de saúde cadastrado ainda.
+                                        </td>
+                                    </tr>
+                                @endforelse
                             </tbody>
                         </table>
                     </div>
@@ -66,7 +81,8 @@
                 <h5 class="modal-title fw-bold">Configurar Plano de Saúde</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form action="#" method="POST">
+            {{-- 2. ROTAS DO FORMULÁRIO --}}
+            <form action="{{ route('planos.store') }}" method="POST">
                 @csrf
                 <div class="modal-body p-4 bg-light">
                     
@@ -75,7 +91,8 @@
                             <h6 class="fw-bold text-secondary mb-3 border-bottom pb-2">Informações Básicas</h6>
                             <div class="mb-3">
                                 <label class="form-label small fw-bold">Nome do Plano</label>
-                                <input type="text" class="form-control" name="nome_plano" placeholder="Ex: Ouro, Premium..." required>
+                                {{-- Ajustado 'name="nome"' para casar com o banco --}}
+                                <input type="text" class="form-control" name="nome" placeholder="Ex: Ouro, Premium..." required>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label small fw-bold text-success">Valor Mensal (R$)</label>
@@ -145,11 +162,11 @@
 </div>
 
 <script>
+    // Mantive todo o seu script JavaScript idêntico, pois a lógica de clonagem está perfeita.
     document.addEventListener('DOMContentLoaded', function() {
         const btnAddRegra = document.getElementById('btnAddRegra');
         const container = document.getElementById('regrasContainer');
 
-        // Função para mostrar/esconder o campo de porcentagem dependendo do select
         function bindModalidadeChange(selectElement) {
             selectElement.addEventListener('change', function() {
                 const row = this.closest('.regra-linha');
@@ -167,47 +184,37 @@
             });
         }
 
-        // Função para remover a linha
         function bindRemoverRegra(btnElement) {
             btnElement.addEventListener('click', function() {
                 const row = this.closest('.regra-linha');
-                // Não deixa remover se for a última linha restante
                 if (container.querySelectorAll('.regra-linha').length > 1) {
                     row.remove();
                 }
             });
         }
 
-        // Aplica os eventos na primeira linha que já vem no HTML
         const firstSelect = container.querySelector('.select-modalidade');
         bindModalidadeChange(firstSelect);
 
-        // Adicionar nova linha
         btnAddRegra.addEventListener('click', function() {
-            // Clona a primeira linha
             const originalRow = container.querySelector('.regra-linha');
             const newRow = originalRow.cloneNode(true);
             
-            // Limpa os valores da linha clonada
             newRow.querySelector('select[name="servico_id[]"]').value = "";
             newRow.querySelector('select[name="modalidade[]"]').value = "incluso";
             newRow.querySelector('input[name="desconto_pct[]"]').value = "";
             newRow.querySelector('input[name="desconto_pct[]"]').removeAttribute('required');
             newRow.querySelector('.div-desconto').classList.add('d-none');
             
-            // Habilita o botão de lixeira na nova linha
             const btnRemove = newRow.querySelector('.btn-remover-regra');
             btnRemove.removeAttribute('disabled');
             
-            // Aplica os listeners na nova linha
             bindModalidadeChange(newRow.querySelector('.select-modalidade'));
             bindRemoverRegra(btnRemove);
 
-            // Se o botão da primeira linha estava desabilitado e agora temos mais de uma linha, habilita todos
             const allRemoveBtns = container.querySelectorAll('.btn-remover-regra');
             allRemoveBtns.forEach(btn => btn.removeAttribute('disabled'));
 
-            // Insere no container
             container.appendChild(newRow);
         });
     });

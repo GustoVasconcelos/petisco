@@ -29,8 +29,11 @@ Route::prefix('admin')->group(function () {
     // Rota dos Tutores
     Route::resource('tutores', \App\Http\Controllers\Admin\TutorController::class);
 
-    // Rota dos Planos de Saúde
-    Route::get('/planos', [PlanoController::class, 'index']);
+    // Rota para visualizar a listagem de planos
+    Route::get('/planos', [PlanoController::class, 'index'])->name('planos.index');
+    
+    // Rota para salvar os dados enviados pelo modal de novo plano
+    Route::post('/planos', [PlanoController::class, 'store'])->name('planos.store');
 
     // Rota dos Serviços
     Route::get('/servicos', [DashboardController::class, 'servicos']);
