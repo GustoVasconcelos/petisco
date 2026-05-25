@@ -5,6 +5,7 @@ use App\Http\Controllers\SiteController;
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\TalentoController;
+use App\Http\Controllers\Admin\PlanoController;
 
 // Rotas do Site Público
 Route::get('/', [SiteController::class, 'index']);
@@ -29,7 +30,7 @@ Route::prefix('admin')->group(function () {
     Route::resource('tutores', \App\Http\Controllers\Admin\TutorController::class);
 
     // Rota dos Planos de Saúde
-    Route::get('/planos', [DashboardController::class, 'planos']);
+    Route::get('/planos', [PlanoController::class, 'index']);
 
     // Rota dos Serviços
     Route::get('/servicos', [DashboardController::class, 'servicos']);
