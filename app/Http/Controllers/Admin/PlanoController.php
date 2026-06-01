@@ -66,4 +66,35 @@ class PlanoController extends Controller
         // Retorna para a mesma página com uma mensagem de sucesso no padrão do Laravel
         return redirect()->back()->with('success', 'Plano de Saúde configurado com sucesso!');
     }
+/**
+ * Alterna o status do plano entre ativo e inativo.
+ */
+public function toggleStatus($id)
+{
+    $plano = Plano::findOrFail($id);
+    $plano->ativo = !$plano->ativo;
+    $plano->save();
+
+    $status = $plano->ativo ? 'ativado' : 'inativado';
+    return redirect()->back()->with('success', "Plano de Saúde {$status} com sucesso!");
+}
+
+/**
+ * Exclui o plano do banco de dados.
+ */
+    public function destroy($id)
+    {
+        DB::transaction(function () use ($id) {
+            // Encontra o plano
+            $plano = Plano::findOrFail($id);
+            
+            // Remove primeiro as regras vinculadas para não quebrar a integridade
+            PlanoRegra::where('plano_id', $plano->id)->delete();
+            
+            // Remove o plano
+            $plano->delete();
+        });
+
+        return redirect()->back()->with('success', 'Plano de Saúde excluído com sucesso!');
+    }
 }
