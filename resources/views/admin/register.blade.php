@@ -8,7 +8,7 @@
         
         <div class="text-center mb-4">
             <img src="{{ asset('assets/img/icons/logo-2.png') }}" alt="Logo Petisco" width="80" class="mb-2">
-            <h3 class="fw-bold" style="color: #6c757d;">cadastro de funcionários</h3>
+            <h3 class="fw-bold" style="color: #6c757d;">cadastro de funcionário</h3>
         </div>
 
         <div class="card shadow-sm border-0 rounded-3">
