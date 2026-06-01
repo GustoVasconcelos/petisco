@@ -10,4 +10,8 @@ class SiteController extends Controller
     {
         return view('home');
     }
+
+    public function agenda() {
+        return view('admin.agenda');
+    }
 }
