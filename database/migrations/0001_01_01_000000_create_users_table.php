@@ -17,6 +17,14 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            
+            // Novos campos adicionados para o gerenciamento de acesso do Petisco
+            $table->string('cpf')->unique();
+            $table->string('celular');
+            $table->string('cargo'); // Atendente, Auxiliar Veterinário, Esteticista / Tosador, Gerente, Veterinário, TI / Desenvolvedor
+            $table->string('crmv')->nullable()->unique(); // nullable() pois é obrigatório apenas para o cargo Veterinário
+            $table->string('turno'); // Manhã, Tarde, Noite
+            
             $table->rememberToken();
             $table->timestamps();
         });

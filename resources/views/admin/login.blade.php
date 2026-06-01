@@ -27,6 +27,10 @@
                     </div>
 
                     <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold">Entrar</button>
+                    
+                    <div class="text-center mt-3">
+                        <a href="{{ url('/admin/registrar') }}" class="text-decoration-none small fw-semibold" style="color: #0d6efd;">Não tem uma conta? Cadastre-se</a>
+                    </div>
                 </form>
             </div>
         </div>
