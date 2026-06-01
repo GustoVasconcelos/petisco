@@ -7,8 +7,17 @@
     <div class="row flex-nowrap">
         
         @include('admin.partials.sidebar')
-
         <div class="col py-4 px-4">
+        @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ session('success') }}
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert">
+                </button>
+            </div>
+        @endif
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h2 class="fw-bold text-secondary"><i class="bi bi-heart-fill text-danger me-2"></i>Animais</h2>
                 <button type="button" class="btn btn-primary fw-bold" data-bs-toggle="modal" data-bs-target="#modalAnimal">
@@ -43,17 +52,60 @@
                                 </tr>
                             </thead>
                             <tbody>
+                                @forelse($animais as $animal)
                                 <tr>
-                                    <td class="ps-4 fw-bold">Rex</td>
-                                    <td>Cão / Labrador</td>
-                                    <td>Victor Orlandi</td>
-                                    <td>32kg</td>
-                                    <td class="text-end pe-4">
-                                        <button class="btn btn-sm btn-outline-secondary me-1" title="Editar"><i class="bi bi-pencil"></i></button>
-                                        <button class="btn btn-sm btn-outline-danger" title="Excluir"><i class="bi bi-trash"></i></button>
-                                    </td>
-                                </tr>
-                                </tbody>
+                                        <td class="ps-4 fw-bold">
+                                            {{ $animal->nome }}
+                                        </td>
+
+                                        <td>
+                                            <span class="badge bg-primary">
+                                                {{ $animal->tipo }}
+                                            </span>
+
+                                            <div class="small text-muted">
+                                                {{ $animal->raca }}
+                                            </div>
+                                        </td>
+
+                                        <td>
+                                            {{ $animal->tutor }}
+                                        </td>
+
+                                        <td>
+                                            {{ $animal->peso }} kg
+                                        </td>
+
+                                        <td class="text-end pe-4">
+
+                                            <button
+                                                class="btn btn-sm btn-outline-secondary me-1"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#modalEditar{{ $animal->id }}">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+
+                                            <form action="/admin/animais/delete/{{ $animal->id }}" method="POST" class="d-inline">
+                                                @csrf
+                                                @method('DELETE')
+
+                                                <button type="submit"
+                                                        class="btn btn-sm btn-outline-danger"
+                                                        onclick="return confirm('Deseja excluir este animal?')">
+                                                    <i class="bi bi-person-slash"></i>
+                                                </button>
+                                            </form>
+
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted py-4">
+                                            Nenhum animal encontrado
+                                        </td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
                         </table>
                     </div>
                 </div>
@@ -79,7 +131,7 @@
                 <h5 class="modal-title fw-bold" id="tituloModal">Cadastrar Novo Animal</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form action="#" method="POST">
+            <form action="/admin/animais/store" method="POST">
                 @csrf
                 <div class="modal-body p-4">
                     <div class="row g-3">
@@ -89,7 +141,7 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label small fw-bold">Tutor (Responsável)</label>
-                            <select class="form-select bg-light" name="tutor_id">
+                            <select class="form-select bg-light" name="tutor">
                                 <option selected disabled>Selecione um tutor...</option>
                                 <option value="1">Victor Orlandi</option>
                                 <option value="2">Augusto Vasconcelos</option>
@@ -151,4 +203,180 @@
     // Aqui você pode adicionar lógica futura para mudar o título do modal 
     // quando for edição e preencher os campos via JavaScript/Ajax.
 </script>
+@foreach($animais as $animal)
+
+<div class="modal fade" id="modalEditar{{ $animal->id }}" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+
+        <div class="modal-content border-0 shadow">
+
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title fw-bold">
+                    Editar Animal
+                </h5>
+
+                <button type="button"
+                        class="btn-close btn-close-white"
+                        data-bs-dismiss="modal">
+                </button>
+            </div>
+
+            <form action="/admin/animais/update/{{ $animal->id }}" method="POST">
+
+                @csrf
+                @method('PUT')
+
+                <div class="modal-body p-4">
+
+                    <div class="row g-3">
+
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">
+                                Nome do Animal
+                            </label>
+
+                            <input type="text"
+                                   class="form-control bg-light"
+                                   name="nome"
+                                   value="{{ $animal->nome }}">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">
+                                Tutor
+                            </label>
+
+                            <input type="text"
+                                   class="form-control bg-light"
+                                   name="tutor"
+                                   value="{{ $animal->tutor }}">
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">
+                                Espécie
+                            </label>
+
+                            <input type="text"
+                                   class="form-control bg-light"
+                                   name="tipo"
+                                   value="{{ $animal->tipo }}">
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">
+                                Raça
+                            </label>
+
+                            <input type="text"
+                                   class="form-control bg-light"
+                                   name="raca"
+                                   value="{{ $animal->raca }}">
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">
+                                Peso
+                            </label>
+
+                            <input type="number"
+                                   step="0.01"
+                                   class="form-control bg-light"
+                                   name="peso"
+                                   value="{{ $animal->peso }}">
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">
+                                Data de Nascimento
+                            </label>
+
+                            <input type="date"
+                                   class="form-control bg-light"
+                                   name="nascimento"
+                                   value="{{ $animal->nascimento }}">
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">
+                                Gênero
+                            </label>
+
+                            <select class="form-select bg-light" name="genero">
+
+                                <option value="M"
+                                    {{ $animal->genero == 'M' ? 'selected' : '' }}>
+                                    Macho
+                                </option>
+
+                                <option value="F"
+                                    {{ $animal->genero == 'F' ? 'selected' : '' }}>
+                                    Fêmea
+                                </option>
+
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">
+                                Porte
+                            </label>
+
+                            <select class="form-select bg-light" name="porte">
+
+                                <option value="P"
+                                    {{ $animal->porte == 'P' ? 'selected' : '' }}>
+                                    Pequeno
+                                </option>
+
+                                <option value="M"
+                                    {{ $animal->porte == 'M' ? 'selected' : '' }}>
+                                    Médio
+                                </option>
+
+                                <option value="G"
+                                    {{ $animal->porte == 'G' ? 'selected' : '' }}>
+                                    Grande
+                                </option>
+
+                            </select>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label small fw-bold">
+                                Observações
+                            </label>
+
+                            <textarea class="form-control bg-light"
+                                      rows="3"
+                                      name="observacoes">{{ $animal->observacoes }}</textarea>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="modal-footer border-0">
+
+                    <button type="button"
+                            class="btn btn-light fw-bold"
+                            data-bs-dismiss="modal">
+                        Cancelar
+                    </button>
+
+                    <button type="submit"
+                            class="btn btn-primary fw-bold">
+                        Salvar Alterações
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+</div>
+
+@endforeach
 @endsection
