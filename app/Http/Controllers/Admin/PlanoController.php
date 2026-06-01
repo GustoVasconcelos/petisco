@@ -66,4 +66,89 @@ class PlanoController extends Controller
         // Retorna para a mesma página com uma mensagem de sucesso no padrão do Laravel
         return redirect()->back()->with('success', 'Plano de Saúde configurado com sucesso!');
     }
+
+    /**
+     * Alterna o status do plano entre ativo e inativo.
+     */
+    public function toggleStatus(int $id)
+    {
+        $plano = Plano::findOrFail($id);
+        $plano->ativo = !$plano->ativo;
+        $plano->save();
+    
+        $status = $plano->ativo ? 'ativado' : 'inativado';
+        return redirect()->back()->with('success', "Plano de Saúde {$status} com sucesso!");
+    }
+    
+    /**
+     * Exclui o plano do banco de dados.
+     */
+    public function destroy(int $id)
+    {
+        DB::transaction(function () use ($id) {
+            // Encontra o plano
+            $plano = Plano::findOrFail($id);
+            
+            // Remove primeiro as regras vinculadas para não quebrar a integridade
+            PlanoRegra::where('plano_id', $plano->id)->delete();
+            
+            // Remove o plano
+            $plano->delete();
+        });
+    
+        return redirect()->back()->with('success', 'Plano de Saúde excluído com sucesso!');
+    }
+
+    /**
+     * Retorna os dados do plano e suas regras em formato JSON para o modal.
+     */
+    public function edit(int $id)
+    {
+        // Busca o plano carregando junto as suas regras vinculadas
+        $plano = Plano::with('regras')->findOrFail($id);
+        return response()->json($plano);
+    }
+
+    /**
+     * Atualiza os dados do plano e suas regras de cobertura.
+     */
+    public function update(Request $request, int $id)
+    {
+        $request->validate([
+            'nome' => 'required|string|max:255',
+            'valor' => 'required|numeric|min:0',
+            'descricao' => 'nullable|string',
+            'servico_id' => 'required|array',
+            'modalidade' => 'required|array',
+            'desconto_pct' => 'nullable|array',
+        ]);
+
+        DB::transaction(function () use ($request, $id) {
+            $plano = Plano::findOrFail($id);
+            
+            // Atualiza os dados básicos
+            $plano->update([
+                'nome' => $request->nome,
+                'valor' => $request->valor,
+                'descricao' => $request->descricao,
+            ]);
+
+            // Remove as regras antigas para reinserir as atualizadas
+            PlanoRegra::where('plano_id', $plano->id)->delete();
+
+            // Insere as novas regras vindas do modal de edição
+            foreach ($request->servico_id as $index => $servicoId) {
+                if (!empty($servicoId)) {
+                    PlanoRegra::create([
+                        'plano_id' => $plano->id,
+                        'servico_id' => $servicoId,
+                        'modalidade' => $request->modalidade[$index],
+                        'desconto_pct' => $request->modalidade[$index] === 'desconto' ? $request->desconto_pct[$index] : null,
+                    ]);
+                }
+            }
+        });
+
+        return redirect()->back()->with('success', 'Plano de Saúde atualizado com sucesso!');
+    }
 }

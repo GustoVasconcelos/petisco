@@ -40,11 +40,19 @@ Route::prefix('admin')->group(function () {
     // Rota dos Tutores
     Route::resource('tutores', \App\Http\Controllers\Admin\TutorController::class);
 
+    // CRUD Planos
     // Rota para visualizar a listagem de planos
-    Route::get('/planos', [PlanoController::class, 'index'])->name('planos.index');
-    
+    Route::get('/planos', [PlanoController::class, 'index'])->name('planos.index'); 
     // Rota para salvar os dados enviados pelo modal de novo plano
     Route::post('/planos', [PlanoController::class, 'store'])->name('planos.store');
+    // Rota para alternar o status (Ativar/Inativar)
+    Route::patch('/planos/{id}/status', [PlanoController::class, 'toggleStatus'])->name('planos.status');
+    // Rota para deletar o plano e suas regras
+    Route::delete('/planos/{id}', [PlanoController::class, 'destroy'])->name('planos.destroy');
+    // Rota para buscar os dados de um plano específico via AJAX/JavaScript
+    Route::get('/planos/{id}/edit', [PlanoController::class, 'edit'])->name('planos.edit');
+    // Rota para salvar as alterações do plano
+    Route::put('/planos/{id}', [PlanoController::class, 'update'])->name('planos.update');
 
     // CRUD Serviços
     Route::get('/servicos', [ServicoController::class, 'index']);
