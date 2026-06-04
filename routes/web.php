@@ -10,72 +10,71 @@ use App\Http\Controllers\Admin\ServicoController;
 use App\Http\Controllers\Admin\AnimalController;
 use App\Http\Controllers\AgendamentoController;
 use App\Http\Controllers\AtendimentoController;
-use App\Http\Controllers\Auth\RegisterController;
 
 // Rotas do Site Público
 Route::get('/', [SiteController::class, 'index']);
 
 // Rotas da Área Administrativa
 Route::prefix('admin')->group(function () {
+
+    // --- Autenticação (sem middleware de auth) ---
     Route::get('/login', [AuthController::class, 'index'])->name('admin.login');
-    
-    // Rota do painel
-    Route::get('/dashboard', [DashboardController::class, 'index']);
+    Route::post('/login', [AuthController::class, 'login'])->name('admin.login.submit');
+    Route::post('/logout', [AuthController::class, 'logout'])->name('admin.logout');
 
-    // Rota da agenda
-    Route::get('/agenda', [SiteController::class, 'agenda']);
+    // --- Área protegida: requer login ---
+    Route::middleware('auth')->group(function () {
 
-    // Rota da CRUD dos Animais
-    Route::get('/animais', [AnimalController::class, 'index']);
-    Route::post('/animais/store', [AnimalController::class, 'store']);
-    Route::put('/animais/update/{id}', [AnimalController::class, 'update']);
-    Route::delete('/animais/delete/{id}', [AnimalController::class, 'destroy']);
+        // Painel principal
+        Route::get('/dashboard', [DashboardController::class, 'index']);
 
-    // CRUD Talentos
-    Route::get('/talentos', [TalentoController::class, 'index']);
-    Route::post('/talentos/store', [TalentoController::class, 'store']);
-    Route::put('/talentos/update/{id}', [TalentoController::class, 'update']);
-    Route::delete('/talentos/delete/{id}', [TalentoController::class, 'destroy']);
+        // Agenda
+        Route::get('/agenda', [SiteController::class, 'agenda']);
 
-    // Rota dos Tutores
-    Route::resource('tutores', \App\Http\Controllers\Admin\TutorController::class);
+        // Histórico
+        Route::get('/historico', [DashboardController::class, 'historico']);
 
-    // CRUD Planos
-    // Rota para visualizar a listagem de planos
-    Route::get('/planos', [PlanoController::class, 'index'])->name('planos.index'); 
-    // Rota para salvar os dados enviados pelo modal de novo plano
-    Route::post('/planos', [PlanoController::class, 'store'])->name('planos.store');
-    // Rota para alternar o status (Ativar/Inativar)
-    Route::patch('/planos/{id}/status', [PlanoController::class, 'toggleStatus'])->name('planos.status');
-    // Rota para deletar o plano e suas regras
-    Route::delete('/planos/{id}', [PlanoController::class, 'destroy'])->name('planos.destroy');
-    // Rota para buscar os dados de um plano específico via AJAX/JavaScript
-    Route::get('/planos/{id}/edit', [PlanoController::class, 'edit'])->name('planos.edit');
-    // Rota para salvar as alterações do plano
-    Route::put('/planos/{id}', [PlanoController::class, 'update'])->name('planos.update');
+        // CRUD Animais
+        Route::get('/animais', [AnimalController::class, 'index']);
+        Route::post('/animais/store', [AnimalController::class, 'store']);
+        Route::put('/animais/update/{id}', [AnimalController::class, 'update']);
+        Route::delete('/animais/delete/{id}', [AnimalController::class, 'destroy']);
 
-    // CRUD Serviços
-    Route::get('/servicos', [ServicoController::class, 'index']);
-    Route::post('/servicos/store', [ServicoController::class, 'store']);
-    Route::put('/servicos/update/{id}', [ServicoController::class, 'update']);
-    Route::delete('/servicos/delete/{id}', [ServicoController::class, 'destroy']);
-    
-    // Rota do Histórico
-    Route::get('/historico', [DashboardController::class, 'historico']);
+        // CRUD Talentos (Funcionários)
+        Route::get('/talentos', [TalentoController::class, 'index']);
+        Route::post('/talentos/store', [TalentoController::class, 'store']);
+        Route::put('/talentos/update/{id}', [TalentoController::class, 'update']);
+        Route::delete('/talentos/delete/{id}', [TalentoController::class, 'destroy']);
 
-    // Páginas que APENAS Atendentes, Gerentes e TI podem acessar
-    Route::middleware(['auth', 'role:Atendente|Gerente|TI / Desenvolvedor'])->group(function () {
-        Route::get('/agendar-servico', [AgendamentoController::class, 'create']);
-        Route::post('/agendar-servico', [AgendamentoController::class, 'store']);
-    });
+        // CRUD Tutores
+        Route::resource('tutores', \App\Http\Controllers\Admin\TutorController::class);
 
-    // Páginas médicas que APENAS Veterinários e Auxiliares podem acessar
-    Route::middleware(['auth', 'role:Veterinário|Auxiliar Veterinário'])->group(function () {
-        Route::get('/prontuario/{id}', [AtendimentoController::class, 'create']);
-        Route::post('/prontuario/salvar', [AtendimentoController::class, 'store']);
-    });
+        // CRUD Planos
+        Route::get('/planos', [PlanoController::class, 'index'])->name('planos.index');
+        Route::post('/planos', [PlanoController::class, 'store'])->name('planos.store');
+        Route::patch('/planos/{id}/status', [PlanoController::class, 'toggleStatus'])->name('planos.status');
+        Route::delete('/planos/{id}', [PlanoController::class, 'destroy'])->name('planos.destroy');
+        Route::get('/planos/{id}/edit', [PlanoController::class, 'edit'])->name('planos.edit');
+        Route::put('/planos/{id}', [PlanoController::class, 'update'])->name('planos.update');
 
-    // Rotas de Registro para testes (Ajustadas sem o prefixo duplicado)
-    Route::get('/registrar', [RegisterController::class, 'showRegistrationForm'])->name('admin.register');
-    Route::post('/registrar', [RegisterController::class, 'register'])->name('admin.register.store');
+        // CRUD Serviços
+        Route::get('/servicos', [ServicoController::class, 'index']);
+        Route::post('/servicos/store', [ServicoController::class, 'store']);
+        Route::put('/servicos/update/{id}', [ServicoController::class, 'update']);
+        Route::delete('/servicos/delete/{id}', [ServicoController::class, 'destroy']);
+
+        // Agendamento (Atendente, Gerente e TI)
+        Route::middleware('role:Atendente|Gerente|TI / Desenvolvedor')->group(function () {
+            Route::get('/agendar-servico', [AgendamentoController::class, 'create']);
+            Route::post('/agendar-servico', [AgendamentoController::class, 'store']);
+        });
+
+        // Prontuário médico (Veterinário e Auxiliar Veterinário)
+        Route::middleware('role:Veterinário|Auxiliar Veterinário')->group(function () {
+            Route::get('/prontuario/{id}', [AtendimentoController::class, 'create']);
+            Route::post('/prontuario/salvar', [AtendimentoController::class, 'store']);
+        });
+
+    }); // fim: middleware auth
+
 });

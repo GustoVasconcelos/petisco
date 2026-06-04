@@ -3,65 +3,127 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\Request;
-use App\Models\Talento;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules\Password;
+use Illuminate\Support\Facades\Auth;
 
 class TalentoController extends Controller
 {
-    //para teste
-    //public function index()
-    //{
-    //    die('ESTE É O CONTROLLER EM EXECUÇÃO');
-    //}
-
-    //function index()
-    //{
-    //    dd('funcionando');
-    //}
-
-    public function index()
+    /**
+     * Lista todos os funcionários (usuários do sistema).
+     */
+    public function index(Request $request)
     {
-        $talentos = Talento::all();
+        $search = $request->input('search');
+        $query  = User::query();
 
-        return view('admin.talentos.index', compact('talentos'));
+        if ($search) {
+            $query->where('name', 'like', "%{$search}%")
+                  ->orWhere('cargo', 'like', "%{$search}%")
+                  ->orWhere('cpf', 'like', "%{$search}%");
+        }
+
+        $talentos = $query->orderBy('name')->get();
+
+        return view('admin.talentos.index', compact('talentos', 'search'));
     }
+
+    /**
+     * Cadastra um novo funcionário como usuário do sistema.
+     * Atribui automaticamente o role Spatie com base no cargo.
+     */
     public function store(Request $request)
     {
-        Talento::create([
-            'nome' => $request->nome,
-            'cpf' => $request->cpf,
-            'telefone' => $request->telefone,
-            'cargo' => $request->cargo,
-            'crmv' => $request->crmv,
-            'turno' => $request->turno,
-            'status' => 'Ativo'
+        $validated = $request->validate([
+            'name'                  => 'required|string|max:255',
+            'email'                 => 'required|email|max:255|unique:users',
+            'cpf'                   => 'required|string|max:20|unique:users',
+            'celular'               => 'required|string|max:20',
+            'cargo'                 => 'required|string',
+            'crmv'                  => 'required_if:cargo,Veterinário|nullable|string|max:50|unique:users',
+            'turno'                 => 'required|string',
+            'password'              => ['required', 'confirmed', Password::min(8)],
         ]);
 
+        $user = User::create([
+            'name'     => $validated['name'],
+            'email'    => $validated['email'],
+            'password' => Hash::make($validated['password']),
+            'cpf'      => $validated['cpf'],
+            'celular'  => $validated['celular'],
+            'cargo'    => $validated['cargo'],
+            'crmv'     => $validated['crmv'] ?? null,
+            'turno'    => $validated['turno'],
+            'status'   => 'Ativo',
+        ]);
+
+        // Atribui o role Spatie com base no cargo selecionado
+        if ($user->cargo) {
+            $user->assignRole($user->cargo);
+        }
+
         return redirect('/admin/talentos')
-            ->with('success', 'Funcionário cadastrado com sucesso!');
+            ->with('success', 'Funcionário cadastrado com sucesso! Ele já pode fazer login no sistema.');
     }
-    
+
+    /**
+     * Atualiza os dados de um funcionário.
+     * Reatribui o role se o cargo mudou.
+     */
     public function update(Request $request, $id)
     {
-        $talento = Talento::findOrFail($id);
+        $user = User::findOrFail($id);
 
-        $talento->update([
-            'nome' => $request->nome,
-            'cargo' => $request->cargo,
-            'telefone' => $request->telefone,
-            'crmv' => $request->crmv,
+        $validated = $request->validate([
+            'name'    => 'required|string|max:255',
+            'email'   => 'required|email|max:255|unique:users,email,' . $user->id,
+            'celular' => 'required|string|max:20',
+            'cargo'   => 'required|string',
+            'crmv'    => 'required_if:cargo,Veterinário|nullable|string|max:50|unique:users,crmv,' . $user->id,
+            'turno'   => 'required|string',
+            'status'  => 'required|in:Ativo,Inativo',
         ]);
 
-        return redirect('/admin/talentos')->with('success', 'Talento atualizado com sucesso!');
-    }
+        $cargoAnterior = $user->cargo;
 
-    public function destroy($id)
-    {
-        $talento = Talento::findOrFail($id);
+        $user->update([
+            'name'    => $validated['name'],
+            'email'   => $validated['email'],
+            'celular' => $validated['celular'],
+            'cargo'   => $validated['cargo'],
+            'crmv'    => $validated['crmv'] ?? null,
+            'turno'   => $validated['turno'],
+            'status'  => $validated['status'],
+        ]);
 
-        $talento->delete();
+        // Reatribui o role se o cargo mudou
+        if ($cargoAnterior !== $validated['cargo']) {
+            $user->syncRoles([$validated['cargo']]);
+        }
 
         return redirect('/admin/talentos')
-            ->with('success', 'Funcionário removido com sucesso!');
+            ->with('success', 'Funcionário atualizado com sucesso!');
+    }
+
+    /**
+     * Remove um funcionário do sistema.
+     * Protege contra auto-exclusão.
+     */
+    public function destroy($id)
+    {
+        $user = User::findOrFail($id);
+
+        // Impede que o usuário logado se exclua
+        if (Auth::id() === $user->id) {
+            return redirect('/admin/talentos')
+                ->with('error', 'Você não pode excluir seu próprio usuário.');
+        }
+
+        $user->delete();
+
+        return redirect('/admin/talentos')
+            ->with('success', 'Funcionário removido do sistema com sucesso!');
     }
 }

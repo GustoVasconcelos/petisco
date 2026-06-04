@@ -26,7 +26,8 @@ class User extends Authenticatable
         'celular', 
         'cargo', 
         'crmv', 
-        'turno'
+        'turno',
+        'status',   // Ativo / Inativo
     ];
 
     /**

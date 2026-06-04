@@ -54,9 +54,12 @@
 
         <hr class="w-100 text-secondary">
         <div class="pb-4 w-100">
-            <a href="{{ url('/admin/login') }}" class="nav-link text-danger fw-bold">
-                <i class="bi bi-box-arrow-left fs-5 me-2"></i> <span class="d-none d-sm-inline">Sair do Sistema</span>
-            </a>
+            <form action="{{ route('admin.logout') }}" method="POST">
+                @csrf
+                <button type="submit" class="nav-link text-danger fw-bold border-0 bg-transparent w-100 text-start px-3">
+                    <i class="bi bi-box-arrow-left fs-5 me-2"></i> <span class="d-none d-sm-inline">Sair do Sistema</span>
+                </button>
+            </form>
         </div>
     </div>
 </div>
