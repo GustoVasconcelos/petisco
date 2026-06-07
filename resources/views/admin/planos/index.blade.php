@@ -9,6 +9,28 @@
         @include('admin.partials.sidebar')
 
         <div class="col py-4 px-4">
+
+            {{-- Alertas de sucesso/erro --}}
+            @if(session('success'))
+                <div class="alert alert-success alert-dismissible fade show d-flex align-items-center gap-2" role="alert">
+                    <i class="bi bi-check-circle-fill"></i>
+                    <span>{{ session('success') }}</span>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+                </div>
+            @endif
+            @if($errors->any())
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <strong>Corrija os erros abaixo:</strong>
+                    <ul class="mb-0 mt-1">
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            @endif
+
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h2 class="fw-bold text-secondary"><i class="bi bi-shield-check text-success me-2"></i>Planos de Saúde</h2>
                 <button type="button" class="btn btn-success fw-bold" data-bs-toggle="modal" data-bs-target="#modalPlano">
@@ -24,20 +46,44 @@
                                 <tr>
                                     <th class="ps-4">Nome do Plano</th>
                                     <th>Valor Mensal</th>
+                                    <th>Serviços Incluídos</th>
                                     <th>Pets Assinantes</th>
                                     <th>Status</th>
                                     <th class="text-end pe-4">Ações</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {{-- 1. LOOP DINÂMICO PARA LISTAR OS PLANOS --}}
                                 @forelse($planos as $plano)
                                     <tr>
                                         <td class="ps-4 fw-bold">
                                             {{ $plano->nome }}
+                                            @if($plano->descricao)
+                                                <div class="text-muted small fw-normal">{{ Str::limit($plano->descricao, 60) }}</div>
+                                            @endif
                                         </td>
                                         <td class="text-success fw-bold">
                                             R$ {{ number_format($plano->valor, 2, ',', '.') }}
+                                        </td>
+                                        <td>
+                                            @if($plano->regras->count() > 0)
+                                                <div class="d-flex flex-wrap gap-1">
+                                                    @foreach($plano->regras as $regra)
+                                                        <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 small">
+                                                            @if($regra->modalidade === 'incluso')
+                                                                <i class="bi bi-check-circle-fill text-success me-1"></i>
+                                                            @else
+                                                                <i class="bi bi-percent text-warning me-1"></i>
+                                                            @endif
+                                                            {{ $regra->servico?->nome ?? 'Serviço removido' }}
+                                                            @if($regra->modalidade === 'desconto' && $regra->desconto_pct)
+                                                                <span class="text-warning">({{ $regra->desconto_pct }}%)</span>
+                                                            @endif
+                                                        </span>
+                                                    @endforeach
+                                                </div>
+                                            @else
+                                                <span class="text-muted small">Nenhum serviço</span>
+                                            @endif
                                         </td>
                                         <td>
                                             {{-- Estático por enquanto, até criar a relação com Pets futuramente --}}
@@ -52,7 +98,7 @@
                                         </td>
                                         <td class="text-end pe-4">
                                             <div class="d-flex justify-content-end gap-1">
-                                                {{-- Botão de Editar (Ainda estático) --}}
+                                                {{-- Botão de Editar --}}
                                                 <button class="btn btn-sm btn-outline-secondary btn-editar-plano" data-id="{{ $plano->id }}" title="Editar">
                                                     <i class="bi bi-pencil"></i>
                                                 </button>
@@ -78,9 +124,8 @@
                                         </td>
                                     </tr>
                                 @empty
-                                    {{-- Mensagem exibida caso a tabela do banco esteja vazia --}}
                                     <tr>
-                                        <td colspan="5" class="text-center py-4 text-muted">
+                                        <td colspan="6" class="text-center py-4 text-muted">
                                             Nenhum plano de saúde cadastrado ainda.
                                         </td>
                                     </tr>
@@ -94,6 +139,9 @@
     </div>
 </div>
 
+{{-- ================================================================ --}}
+{{-- MODAL: NOVO PLANO                                                --}}
+{{-- ================================================================ --}}
 <div class="modal fade" id="modalPlano" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-centered">
         <div class="modal-content border-0 shadow">
@@ -101,7 +149,6 @@
                 <h5 class="modal-title fw-bold">Configurar Plano de Saúde</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            {{-- 2. ROTAS DO FORMULÁRIO --}}
             <form action="{{ route('planos.store') }}" method="POST">
                 @csrf
                 <div class="modal-body p-4 bg-light">
@@ -111,7 +158,6 @@
                             <h6 class="fw-bold text-secondary mb-3 border-bottom pb-2">Informações Básicas</h6>
                             <div class="mb-3">
                                 <label class="form-label small fw-bold">Nome do Plano</label>
-                                {{-- Ajustado 'name="nome"' para casar com o banco --}}
                                 <input type="text" class="form-control" name="nome" placeholder="Ex: Ouro, Premium..." required>
                             </div>
                             <div class="mb-3">
@@ -138,13 +184,9 @@
                                         <label class="form-label small text-muted mb-1">Serviço / Produto</label>
                                         <select class="form-select" name="servico_id[]" required>
                                             <option value="" selected disabled>Selecione...</option>
-                                            <option value="1">Consulta de Rotina</option>
-                                            <option value="2">Vacina V10</option>
-                                            <option value="3">Vacina Antirrábica</option>
-                                            <option value="4">Banho e Tosa</option>
-                                            <option value="5">Exame de Sangue</option>
-                                            <option value="6">Produtos do PetShop (Geral)</option>
-                                            <option value="7">Vacina contra a gripe canina</option>
+                                            @foreach($servicos as $servico)
+                                                <option value="{{ $servico->id }}">{{ $servico->nome }}</option>
+                                            @endforeach
                                         </select>
                                     </div>
                                     <div class="col-md-4">
@@ -180,6 +222,10 @@
         </div>
     </div>
 </div>
+
+{{-- ================================================================ --}}
+{{-- MODAL: EDITAR PLANO                                              --}}
+{{-- ================================================================ --}}
 <div class="modal fade" id="modalEditarPlano" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-centered">
         <div class="modal-content border-0 shadow">
@@ -217,7 +263,7 @@
                             </div>
                             
                             <div id="editRegrasContainer">
-                                {{-- As linhas de regras serão injetadas dinamicamente via JS aqui --}}
+                                {{-- As linhas de regras serão injetadas dinamicamente via JS --}}
                             </div>
                         </div>
                     </div>
@@ -230,6 +276,11 @@
         </div>
     </div>
 </div>
+
+{{-- Passa a lista de serviços para o JS de forma segura --}}
+<script>
+    const servicosDisponiveis = @json($servicos->map(fn($s) => ['id' => $s->id, 'nome' => $s->nome]));
+</script>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -270,91 +321,125 @@
 
         if (btnAddRegra) {
             btnAddRegra.addEventListener('click', function() {
-                const originalRow = container.querySelector('.regra-linha');
-                const newRow = originalRow.cloneNode(true);
-                
-                newRow.querySelector('select[name="servico_id[]"]').value = "";
-                newRow.querySelector('select[name="modalidade[]"]').value = "incluso";
-                newRow.querySelector('input[name="desconto_pct[]"]').value = "";
-                newRow.querySelector('input[name="desconto_pct[]"]').removeAttribute('required');
-                newRow.querySelector('.div-desconto').classList.add('d-none');
-                
-                const btnRemove = newRow.querySelector('.btn-remover-regra');
-                btnRemove.removeAttribute('disabled');
-                
-                bindModalidadeChange(newRow.querySelector('.select-modalidade'));
-                bindRemoverRegra(btnRemove);
+                const newRow = criarLinhaRegra();
+                container.appendChild(newRow);
 
                 const allRemoveBtns = container.querySelectorAll('.btn-remover-regra');
                 allRemoveBtns.forEach(btn => btn.removeAttribute('disabled'));
-
-                container.appendChild(newRow);
             });
         }
 
         // ==========================================
-        // LÓGICA DO MODAL DE EDIÇÃO (TRAZIDO PARA DENTRO)
+        // LÓGICA DO MODAL DE EDIÇÃO
         // ==========================================
-        // Lógica para abrir o modal de edição preenchido via AJAX
         document.querySelectorAll('.btn-editar-plano').forEach(botao => {
             botao.addEventListener('click', function() {
                 const id = this.getAttribute('data-id');
                 
-                // CORREÇÃO: Adicionado /admin antes de /planos
                 fetch(`/admin/planos/${id}/edit`)
                     .then(response => response.json())
                     .then(plano => {
-                        // CORREÇÃO: Adicionado /admin no destino do formulário de salvamento
                         document.getElementById('formEditarPlano').setAttribute('action', `/admin/planos/${id}`);
                         document.getElementById('edit_nome').value = plano.nome;
                         document.getElementById('edit_valor').value = plano.valor;
-                        document.getElementById('edit_descricao').value = plano.descricao;
+                        document.getElementById('edit_descricao').value = plano.descricao ?? '';
 
-                        // Limpa o container de regras do modal de edição
                         const containerEdit = document.getElementById('editRegrasContainer');
                         containerEdit.innerHTML = '';
 
-                        // Injeta as regras que já existem salvas no banco para este plano
                         plano.regras.forEach((regra) => {
                             adicionarLinhaRegraEdicao(regra);
                         });
 
-                        // Se não tiver nenhuma regra, cria uma linha vazia padrão
-                        if(plano.regras.length === 0) {
+                        if (plano.regras.length === 0) {
                             adicionarLinhaRegraEdicao();
                         }
 
-                        // Abre o modal de edição manualmente
                         const modal = new bootstrap.Modal(document.getElementById('modalEditarPlano'));
                         modal.show();
                     });
             });
         });
 
-        // Botão de adicionar regra no modal de edição
         const btnEditAddRegra = document.getElementById('btnEditAddRegra');
         if (btnEditAddRegra) {
             btnEditAddRegra.addEventListener('click', () => adicionarLinhaRegraEdicao());
         }
     });
 
-    // Mantida como função global para ser acessada internamente pelo escopo do DOM
+    // Gera o HTML de opções de serviços dinamicamente
+    function gerarOpcoesServicos(servicoIdSelecionado = null) {
+        return servicosDisponiveis.map(s => {
+            const selected = servicoIdSelecionado && s.id == servicoIdSelecionado ? 'selected' : '';
+            return `<option value="${s.id}" ${selected}>${s.nome}</option>`;
+        }).join('');
+    }
+
+    // Cria uma nova linha de regra para o modal de CRIAÇÃO
+    function criarLinhaRegra() {
+        const div = document.createElement('div');
+        div.className = 'row g-2 mb-2 regra-linha align-items-end';
+        div.innerHTML = `
+            <div class="col-md-5">
+                <label class="form-label small text-muted mb-1">Serviço / Produto</label>
+                <select class="form-select" name="servico_id[]" required>
+                    <option value="" disabled selected>Selecione...</option>
+                    ${gerarOpcoesServicos()}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label small text-muted mb-1">Modalidade</label>
+                <select class="form-select select-modalidade" name="modalidade[]" required>
+                    <option value="incluso">Totalmente Incluso (Grátis)</option>
+                    <option value="desconto">Oferecer Desconto</option>
+                </select>
+            </div>
+            <div class="col-md-2 div-desconto d-none">
+                <label class="form-label small text-muted mb-1">Desconto %</label>
+                <input type="number" class="form-control" name="desconto_pct[]" placeholder="Ex: 20">
+            </div>
+            <div class="col-md-1 text-end">
+                <button type="button" class="btn btn-outline-danger btn-remover-regra" title="Remover regra">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </div>
+        `;
+
+        div.querySelector('.select-modalidade').addEventListener('change', function() {
+            const divDesc = div.querySelector('.div-desconto');
+            const inpDesc = div.querySelector('input[name="desconto_pct[]"]');
+            if (this.value === 'desconto') {
+                divDesc.classList.remove('d-none');
+                inpDesc.setAttribute('required', 'required');
+            } else {
+                divDesc.classList.add('d-none');
+                inpDesc.removeAttribute('required');
+                inpDesc.value = '';
+            }
+        });
+
+        div.querySelector('.btn-remover-regra').addEventListener('click', function() {
+            const container = document.getElementById('regrasContainer');
+            if (container.querySelectorAll('.regra-linha').length > 1) {
+                div.remove();
+            }
+        });
+
+        return div;
+    }
+
+    // Adiciona uma linha de regra ao modal de EDIÇÃO
     function adicionarLinhaRegraEdicao(regra = null) {
         const container = document.getElementById('editRegrasContainer');
         const dNoneClass = (regra && regra.modalidade === 'desconto') ? '' : 'd-none';
-        const reqAttr = (regra && regra.modalidade === 'desconto') ? 'required' : '';
+        const reqAttr    = (regra && regra.modalidade === 'desconto') ? 'required' : '';
         
         const html = `
             <div class="row g-2 mb-2 regra-linha align-items-end">
                 <div class="col-md-5">
                     <select class="form-select" name="servico_id[]" required>
-                        <option value="1" ${regra && regra.servico_id == 1 ? 'selected' : ''}>Consulta de Rotina</option>
-                        <option value="2" ${regra && regra.servico_id == 2 ? 'selected' : ''}>Vacina V10</option>
-                        <option value="3" ${regra && regra.servico_id == 3 ? 'selected' : ''}>Vacina Antirrábica</option>
-                        <option value="4" ${regra && regra.servico_id == 4 ? 'selected' : ''}>Banho e Tosa</option>
-                        <option value="5" ${regra && regra.servico_id == 5 ? 'selected' : ''}>Exame de Sangue</option>
-                        <option value="6" ${regra && regra.servico_id == 6 ? 'selected' : ''}>Produtos do PetShop (Geral)</option>
-                        <option value="7" ${regra && regra.servico_id == 7 ? 'selected' : ''}>Vacina contra a gripe canina</option>
+                        <option value="" disabled>Selecione...</option>
+                        ${gerarOpcoesServicos(regra ? regra.servico_id : null)}
                     </select>
                 </div>
                 <div class="col-md-4">
@@ -364,7 +449,7 @@
                     </select>
                 </div>
                 <div class="col-md-2 div-desconto-edit ${dNoneClass}">
-                    <input type="number" class="form-control" name="desconto_pct[]" value="${regra ? regra.desconto_pct : ''}" ${reqAttr}>
+                    <input type="number" class="form-control" name="desconto_pct[]" value="${regra ? (regra.desconto_pct ?? '') : ''}" ${reqAttr}>
                 </div>
                 <div class="col-md-1 text-end">
                     <button type="button" class="btn btn-outline-danger btn-remover-regra-edit"><i class="bi bi-trash"></i></button>

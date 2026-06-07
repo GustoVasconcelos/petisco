@@ -14,5 +14,11 @@ class PlanoRegra extends Model
     {
         return $this->belongsTo(Plano::class);
     }
+
+    // Uma regra referencia um serviço específico
+    public function servico(): BelongsTo
+    {
+        return $this->belongsTo(Servico::class);
+    }
 }
 ?>

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Plano;
 use App\Models\PlanoRegra;
+use App\Models\Servico;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -15,11 +16,13 @@ class PlanoController extends Controller
      */
     public function index()
     {
-        // Busca todos os planos do banco de dados
-        $planos = Plano::all();
+        // Busca todos os planos com suas regras e serviços vinculados
+        $planos = Plano::with('regras.servico')->get();
 
-        // Retorna a sua view enviando a variável $planos
-        return view('admin.planos.index', compact('planos'));
+        // Busca todos os serviços disponíveis para popular os selects do formulário
+        $servicos = Servico::orderBy('nome')->get();
+
+        return view('admin.planos.index', compact('planos', 'servicos'));
     }
 
     /**
@@ -104,8 +107,8 @@ class PlanoController extends Controller
      */
     public function edit(int $id)
     {
-        // Busca o plano carregando junto as suas regras vinculadas
-        $plano = Plano::with('regras')->findOrFail($id);
+        // Busca o plano carregando junto as suas regras e os serviços de cada regra
+        $plano = Plano::with('regras.servico')->findOrFail($id);
         return response()->json($plano);
     }
 

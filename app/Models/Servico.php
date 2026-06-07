@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Servico extends Model
 {
@@ -13,4 +14,10 @@ class Servico extends Model
         'valor',
         'descricao',
     ];
+
+    // Um serviço pode pertencer a vários planos
+    public function planos(): BelongsToMany
+    {
+        return $this->belongsToMany(Plano::class, 'plano_servico');
+    }
 }
