@@ -103,8 +103,8 @@
                 myModal.show();
             },
             events: [
-                { title: 'Rex - Consulta', start: '2026-05-22', color: '#ffc107' },
-                { title: 'Bolinha - Vacina', start: '2026-05-23', color: '#198754' }
+                { title: 'Rex - Consulta', start: '2026-06-12', color: '#ffc107' },
+                { title: 'Bolinha - Vacina', start: '2026-06-12', color: '#198754' }
             ]
         });
         calendar.render();
