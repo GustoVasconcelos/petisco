@@ -5,29 +5,37 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Animal;
+use App\Models\Tutor;
 
 class AnimalController extends Controller
 {
     public function index()
     {
-        $animais = Animal::all();
+        // Carrega os animais com o tutor relacionado e pagina os resultados
+        $animais = Animal::with('tutor')->orderBy('nome')->paginate(15);
+        $tutores = Tutor::orderBy('nome')->get();
 
-        return view('admin.animais.index', compact('animais'));
+        return view('admin.animais.index', compact('animais', 'tutores'));
     }
 
     public function store(Request $request)
     {
-        Animal::create([
-            'nome' => $request->nome,
-            'tutor' => $request->tutor,
-            'tipo' => $request->tipo,
-            'raca' => $request->raca,
-            'peso' => $request->peso,
-            'nascimento' => $request->nascimento,
-            'genero' => $request->genero,
-            'porte' => $request->porte,
-            'observacoes' => $request->observacoes
+        $request->validate([
+            'nome'       => 'required|string|max:255',
+            'tutor_id'   => 'required|exists:tutors,id',
+            'tipo'       => 'required|string|max:100',
+            'raca'       => 'nullable|string|max:100',
+            'peso'       => 'nullable|numeric|min:0',
+            'nascimento' => 'nullable|date',
+            'genero'     => 'nullable|in:M,F',
+            'porte'      => 'nullable|in:P,M,G',
+            'observacoes'=> 'nullable|string',
         ]);
+
+        Animal::create($request->only([
+            'nome', 'tutor_id', 'tipo', 'raca',
+            'peso', 'nascimento', 'genero', 'porte', 'observacoes',
+        ]));
 
         return redirect('/admin/animais')
             ->with('success', 'Animal cadastrado com sucesso!');
@@ -37,17 +45,22 @@ class AnimalController extends Controller
     {
         $animal = Animal::findOrFail($id);
 
-        $animal->update([
-            'nome' => $request->nome,
-            'tutor' => $request->tutor,
-            'tipo' => $request->tipo,
-            'raca' => $request->raca,
-            'peso' => $request->peso,
-            'nascimento' => $request->nascimento,
-            'genero' => $request->genero,
-            'porte' => $request->porte,
-            'observacoes' => $request->observacoes
+        $request->validate([
+            'nome'       => 'required|string|max:255',
+            'tutor_id'   => 'required|exists:tutors,id',
+            'tipo'       => 'required|string|max:100',
+            'raca'       => 'nullable|string|max:100',
+            'peso'       => 'nullable|numeric|min:0',
+            'nascimento' => 'nullable|date',
+            'genero'     => 'nullable|in:M,F',
+            'porte'      => 'nullable|in:P,M,G',
+            'observacoes'=> 'nullable|string',
         ]);
+
+        $animal->update($request->only([
+            'nome', 'tutor_id', 'tipo', 'raca',
+            'peso', 'nascimento', 'genero', 'porte', 'observacoes',
+        ]));
 
         return redirect('/admin/animais')
             ->with('success', 'Animal atualizado com sucesso!');
@@ -56,7 +69,6 @@ class AnimalController extends Controller
     public function destroy($id)
     {
         $animal = Animal::findOrFail($id);
-
         $animal->delete();
 
         return redirect('/admin/animais')
